@@ -14,26 +14,24 @@
 
 \begin{document}
 %
-\title{Contribution Title\thanks{Supported by organization x.}}
+\title{Andriller: A scalable Coverage-guided fuzzing infrastructure for Android system services \thanks{Supported by organization x.}}
 %
 %\titlerunning{Abbreviated paper title}
 % If the paper title is too long for the running head, you can set
 % an abbreviated paper title here
 %
-\author{First Author\inst{1}\orcidID{0000-1111-2222-3333} \and
-Second Author\inst{2,3}\orcidID{1111-2222-3333-4444} \and
-Third Author\inst{3}\orcidID{2222--3333-4444-5555}}
+\author{Mohsen Ahmadi\inst{1} \and
+Antonio Bianchi\inst{2}} %\and
+%Third Author\inst{3}\orcidID{2222--3333-4444-5555}}
 %
 \authorrunning{F. Author et al.}
 % First names are abbreviated in the running head.
 % If there are more than two authors, 'et al.' is used.
 %
-\institute{Princeton University, Princeton NJ 08544, USA \and
-Springer Heidelberg, Tiergartenstr. 17, 69121 Heidelberg, Germany
-\email{lncs@springer.com}\\
-\url{http://www.springer.com/gp/computer-science/lncs} \and
-ABC Institute, Rupert-Karls-University Heidelberg, Heidelberg, Germany\\
-\email{\{abc,lncs\}@uni-heidelberg.de}}
+\institute{Unievrsity of California Los Angeles (UCLA)\\
+\email{pwnslinger@ucla.edu} \and
+Purdue University\\
+\email{antoniob@purdue.edu}}
 %
 \maketitle              % typeset the header of the contribution
 %
@@ -46,8 +44,34 @@ The abstract should briefly summarize the contents of the paper in
 %
 %
 %
-\section{First Section}
-\subsection{A Subsection Sample}
+\section{Introduction}
+\section{Motivation}
+\subsection{Challenges}
+\section{Related Work}
+\section{Andriller Architecture}
+\subsection{Overview}
+\subsection{ARTist}
+We build our code instrumentation as modules for the ARTist tool \cite{artist}. We implement two modules for providing feedback from within the systemserver: One for feeding back coverage information to AFL and Troop, and another one for detecting crashes. Further, we patched ARTist such that it can replace the system compiler, which automatically applies our modules to the systemserver upon each fresh emulator start.
+
+
+Coverage. To provide precise feedback, AFLFuzz’s coverage module injects tracking code at basic blocks granularity. At compiletime, deterministic basic block IDs are generated and embedded into the code so that the injected code can make use of them at runtime. The collected basic block IDs are stored to compute the edge coverage and written to AFL’s shared memory buffer to indicate the path of execution triggered by the current input. In order to reduce the amount of instrumented methods, and therefore improve the precision of our coverage metric and reduce the runtime overhead, we conduct a light-weight static reachability analysis as a pre-processing step. We leverage class-hierarchy information to infer the set of reachable methods per API. We filter invocations of methods that do not reside in Android packages, e.g., classes within the JDK. Further, we follow the approach by axplorer \cite{backes2016demystifying} to stop at IPC boundaries, i.e., we do not descent into public API methods that are fuzzed separately. Not instrumenting the entire systemserver also prevents false positives, e.g., when background tasks are executed by the system and new execution paths are triggered independently from the fuzzing input. The resulting set of reachable methods is subsequently used as a whitelist for the instrumentation, i.e., only reachable methods are modified to return coverage feedback. This implies that we have to start a fresh emulator, because each new API now comes with a pre-computed list of reachable methods that results in a different instrumentation.
+
+\subsection{Coresync}
+\subsection{AFLFuzz}
+\subsection{Forkserver}
+\subsection{Simcheck}
+\subsection{Summary}
+\section{Evaluation}
+\subsection{Setup}
+\subsection{Results}
+\subsection{Coverage}
+\subsection{Performance}
+\section{Discussion}
+\subsection{Case Study I}
+\subsection{Case Study II}
+\subsection{Case Study III}
+\section{Future Work}
+\section{Conclusion}
 Please note that the first paragraph of a section or subsection is
 not indented. The first paragraph that follows a table, figure,
 equation etc. does not need an indent, either.
@@ -123,28 +147,7 @@ and a homepage~\cite{ref_url1}. Multiple citations are grouped
 % BibTeX users should specify bibliography style 'splncs04'.
 % References will then be sorted and formatted in the correct style.
 %
-% \bibliographystyle{splncs04}
-% \bibliography{mybibliography}
+\bibliographystyle{splncs04}
+\bibliography{references}
 %
-\begin{thebibliography}{8}
-\bibitem{ref_article1}
-Author, F.: Article title. Journal \textbf{2}(5), 99--110 (2016)
-
-\bibitem{ref_lncs1}
-Author, F., Author, S.: Title of a proceedings paper. In: Editor,
-F., Editor, S. (eds.) CONFERENCE 2016, LNCS, vol. 9999, pp. 1--13.
-Springer, Heidelberg (2016). \doi{10.10007/1234567890}
-
-\bibitem{ref_book1}
-Author, F., Author, S., Author, T.: Book title. 2nd edn. Publisher,
-Location (1999)
-
-\bibitem{ref_proc1}
-Author, A.-B.: Contribution title. In: 9th International Proceedings
-on Proceedings, pp. 1--2. Publisher, Location (2010)
-
-\bibitem{ref_url1}
-LNCS Homepage, \url{http://www.springer.com/lncs}. Last accessed 4
-Oct 2017
-\end{thebibliography}
 \end{document}
