@@ -45,33 +45,55 @@ The abstract should briefly summarize the contents of the paper in
 %
 %
 \section{Introduction}
+% what are our main contributions: 1) cover-guided fuzzing, 2) scalability) sync qemu instances, off-the device fuzzing 3) coverage vs performance 
+% what are the most related works 
 \section{Motivation}
-\subsection{Challenges}
-\section{Related Work}
+\subsection{Challenges} % statefullness, input generation, introspection, vm management (sync and paging) - paralelize-able
+Performing fuzzing on domains where a set of restrictions enforced by system architecture like modules interdependence to the environment, statefull protocols, and crash recovery latency demands a diligent robust design. Hence, in the following, we discuss the challenges in applying coverage-guided fuzzing on the android system services. 
+\begin{itemize}
+    \item Statefullness: Performance of fuzzing is measured by the number of successful execution loops in a particular time frame. Applications cache the execution results of previous runs to reduce the response time or in case of protocols to track the steps taken. Keep tracking of states in fuzz testing of application that two execution of the same input might yield different results is of vital importance. In order to reduce the likelihood of 
+\end{itemize}
+
+%\subsection{Solutions} % briefly describe solutions under the challenge section z
+\subsection{Related Work} % FANS paper % industrial projects 360team, blackhat/defcon 
+\section{Background}
+\subsection{Android}
+\subsection{ARTist}
+\subsection{AFL Harness}
+% android system services, binder, transactions, packets, IPC stack 
 \section{Andriller Architecture}
-\subsection{Overview}
+
+\subsection{Overview} % describe high-level architecture of the system %% 1-page max 
+% fuzzing overview 
+% pipeline picture (diagram) - Google docs (draw.io)
 \subsection{ARTist}
 We build our code instrumentation as modules for the ARTist tool \cite{artist}. We implement two modules for providing feedback from within the systemserver: One for feeding back coverage information to AFL and Troop, and another one for detecting crashes. Further, we patched ARTist such that it can replace the system compiler, which automatically applies our modules to the systemserver upon each fresh emulator start.
 
-
 Coverage. To provide precise feedback, AFLFuzz’s coverage module injects tracking code at basic blocks granularity. At compiletime, deterministic basic block IDs are generated and embedded into the code so that the injected code can make use of them at runtime. The collected basic block IDs are stored to compute the edge coverage and written to AFL’s shared memory buffer to indicate the path of execution triggered by the current input. In order to reduce the amount of instrumented methods, and therefore improve the precision of our coverage metric and reduce the runtime overhead, we conduct a light-weight static reachability analysis as a pre-processing step. We leverage class-hierarchy information to infer the set of reachable methods per API. We filter invocations of methods that do not reside in Android packages, e.g., classes within the JDK. Further, we follow the approach by axplorer \cite{backes2016demystifying} to stop at IPC boundaries, i.e., we do not descent into public API methods that are fuzzed separately. Not instrumenting the entire systemserver also prevents false positives, e.g., when background tasks are executed by the system and new execution paths are triggered independently from the fuzzing input. The resulting set of reachable methods is subsequently used as a whitelist for the instrumentation, i.e., only reachable methods are modified to return coverage feedback. This implies that we have to start a fresh emulator, because each new API now comes with a pre-computed list of reachable methods that results in a different instrumentation.
 
-\subsection{Coresync}
-\subsection{AFLFuzz}
-\subsection{Forkserver}
-\subsection{Simcheck}
+% what I changed in ARTist ? contributions and portability 
+
+\subsection{Coresync} % host, guests 
+\subsection{AFLFuzz} % modfications 
+\subsection{Forkserver} % uplink
+\subsection{Simcheck} % crash similarity check algorithm (stack traces)
+%\subsection{Wrappers}
 \subsection{Summary}
 \section{Evaluation}
-\subsection{Setup}
-\subsection{Results}
+\subsection{Dataset} % android versions, services and how we pruned the tree of interdependence of services 
+\subsection{Setup} % qemu-setup, how long I ran the experiments, configuration setup for each components, wrappers
+\subsection{Results} % table instances, target, duration, unique crashes, coverage 1) flaw-discovery 2) performance 
+\subsection{Crashes}
 \subsection{Coverage}
 \subsection{Performance}
-\section{Discussion}
-\subsection{Case Study I}
-\subsection{Case Study II}
-\subsection{Case Study III}
-\section{Future Work}
-\section{Conclusion}
+\subsection{Case Study} % comparison with previous work, Table for comparison with FANS, how different components helped in the fuzzing process to find more crashes, time 
+%\subsection{Case Study I}
+%\subsection{Case Study II}
+%\subsection{Case Study III}
+\section{Discussion} % responsible disclosure, 
+\subsection{Future Work}
+\subsection{Limitations}
+\section{Conclusion} % similar to abstract and we don't talk about the motivation and we talk about results 
 Please note that the first paragraph of a section or subsection is
 not indented. The first paragraph that follows a table, figure,
 equation etc. does not need an indent, either.
